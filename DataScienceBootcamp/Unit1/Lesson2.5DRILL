@@ -1,0 +1,120 @@
+### Unit 1 Lesson 2.5 Joins and CTEs  DRILL 
+
+
+1 What are the three longest trips on rainy days?
+
+WITH RECURSIVE
+	days
+AS (
+	SELECT
+		LEFT(start_date, Length(start_date)-9) datee,
+		duration,
+		end_date,
+		start_date,
+		trip_id
+	FROM
+		trips
+	GROUP BY 1, 2, 3, 4, 5
+	),
+
+	wdays
+AS (
+	SELECT
+		date, 
+		precipitationin
+	FROM
+		weather
+	WHERE
+		0 < weather.precipitationin
+	GROUP BY 1, 2
+	)
+SELECT 
+	d.duration,
+	d.datee,
+	d.trip_id,
+	w.precipitationin,
+	w.date
+FROM 
+	days d
+
+JOIN 
+	wdays w
+	
+ON d.datee = w.date
+ORDER BY duration DESC;
+
+
+2.Which station is full most often?
+
+SELECT 
+status.station_id,
+status.docks_available,
+COUNT(status.station_id) as full_count
+FROM 
+status
+WHERE 
+docks_available =0
+GROUP By 1, 2
+ORDER BY
+full_count DESC
+
+
+3.Return a list of stations with a count of number of trips starting at that station but ordered by dock count.
+WITH starts
+AS(
+	SELECT 
+	t.start_station,
+	COUNT(start_station) as num_trips
+FROM 
+trips t
+GROUP BY start_station
+)
+
+SELECT 
+	s.name,
+	s.dockcount,
+	starts.num_trips
+FROM 
+stations s
+JOIN
+	starts
+ON 
+ s.name = starts.start_station
+ORDER BY dockcount DESC
+
+4. 4\. (Challenge) What's the length of the longest trip for each day it rains anywhere?
+
+WITH RECURSIVE
+	days
+AS (
+	SELECT
+		LEFT(start_date, Length(start_date)-9) datee,
+		duration
+	FROM
+		trips
+	GROUP BY datee, 2
+	),
+	
+wdays
+AS (
+	SELECT
+		date, 
+		precipitationin
+	FROM
+		weather
+	WHERE
+		0 < weather.precipitationin
+	GROUP BY date, 2
+	)
+SELECT 
+	d.duration,
+	d.datee,
+	w.precipitationin
+FROM 
+	days d
+JOIN 
+	wdays w
+	
+ON w.date = d.datee
+ORDER BY duration DESC;
+
